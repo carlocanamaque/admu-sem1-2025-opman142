@@ -1,8 +1,9 @@
 import com.fazecast.jSerialComm.*;
 import java.awt.*;
+import java.awt.event.*;
 import javax.swing.*;
 
-public class Processor extends JPanel implements Runnable {
+public class Processor extends JPanel implements Runnable, KeyListener {
 
     final int ORIG_TILE_SIZE = 16;
     final int SCALE = 3;
@@ -20,11 +21,13 @@ public class Processor extends JPanel implements Runnable {
     // Neutral gyro values (will be initialized on first reading)
     Integer neutralX = null;
     Integer neutralY = null;
-
+    
     public Processor() {
         this.setPreferredSize(new Dimension(SCREEN_WIDTH, SCREEN_HEIGHT));
         this.setBackground(Color.black);
         this.setDoubleBuffered(true);
+	this.setFocusable(true);
+	this.addKeyListener(this);
     }
 
     public void startThread() {
@@ -38,6 +41,10 @@ public class Processor extends JPanel implements Runnable {
         cube.draw(g2);
         g2.dispose();
     }
+
+	private void changeBackgroundColor() {
+
+	}
 
     @Override
     public void run() {
@@ -57,6 +64,31 @@ public class Processor extends JPanel implements Runnable {
             }
         }
     }
+
+	@Override 
+	public void keyTyped(KeyEvent e) {
+		char key = e.getKeyChar();
+		switch (key) {
+        		case '1': cube.color = Color.RED; break;
+        		case '2': cube.color = Color.GREEN; break;
+        		case '3': cube.color = Color.BLUE; break;
+	        	case '4': cube.color = Color.YELLOW; break;
+        		case '5': cube.color = Color.CYAN; break;
+	        	case '6': cube.color = Color.MAGENTA; break;
+	        	case '7': cube.color = Color.ORANGE; break;
+		        case '8': cube.color = Color.PINK; break;
+        		case '9': cube.color = Color.LIGHT_GRAY; break;
+        		default: return; // ignore other keys
+    		}
+    	System.out.println("Key " + key + " pressed, cube color changed to " + cube.color);
+	}
+
+	@Override
+	public void keyPressed(KeyEvent e) { }
+
+	@Override
+	public void keyReleased(KeyEvent e) { }
+
 
     public static void main(String[] args) {
         JFrame window = new JFrame();
@@ -85,6 +117,7 @@ public class Processor extends JPanel implements Runnable {
 
             while (true) {
                 String line = gyro.readLine();
+		System.out.println(line);
                 if (line != null) {
                     try {
                         String[] parts = line.split(",");

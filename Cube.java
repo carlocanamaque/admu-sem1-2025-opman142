@@ -6,6 +6,7 @@ public class Cube {
 
 	public int x;
 	public int y;
+	public Color color;
 
 	public Cube(Processor processor) {
 
@@ -22,7 +23,7 @@ public class Cube {
 
 	public void draw(Graphics2D g2) {
 
-		g2.setColor(Color.white);
+		g2.setColor(color);
 		g2.fillRect(x, y, processor.TILE_SIZE, processor.TILE_SIZE);
 	}
 }
