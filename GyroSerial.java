@@ -1,10 +1,12 @@
 import com.fazecast.jSerialComm.*;
-import java.util.Scanner;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.IOException;
 
 public class GyroSerial {
 
     private SerialPort serialPort;
-    private Scanner scanner;
+    private BufferedReader reader;
 
     /**
      * Constructor: if portName is null, automatically uses the first available port.
@@ -24,27 +26,32 @@ public class GyroSerial {
         }
 
         // Configure serial port
-        serialPort.setBaudRate(9600); // change to match your device
+        serialPort.setBaudRate(9600); // must match Arduino
         serialPort.setNumDataBits(8);
         serialPort.setParity(SerialPort.NO_PARITY);
         serialPort.setNumStopBits(SerialPort.ONE_STOP_BIT);
 
         if (serialPort.openPort()) {
             System.out.println("Serial port opened successfully.");
-            scanner = new Scanner(serialPort.getInputStream());
+            // Set read timeout to avoid SerialPortTimeoutException
+            serialPort.setComPortTimeouts(SerialPort.TIMEOUT_READ_SEMI_BLOCKING, 1000, 0);
+            reader = new BufferedReader(new InputStreamReader(serialPort.getInputStream()));
         } else {
             System.out.println("Failed to open serial port: " + serialPort.getSystemPortName());
         }
     }
 
     /**
-     * Reads a single line from the gyro serial device and returns it.
-     * Expected format from device: "X:0.12,Y:-0.34,Z:1.23"
-     * @return String line of data, or null if none available
+     * Reads a single line from the gyro serial device (blocking, with timeout)
+     * @return String line of data, or null if timeout or error
      */
     public String readLine() {
-        if (scanner != null && scanner.hasNextLine()) {
-            return scanner.nextLine();
+        if (reader != null) {
+            try {
+                return reader.readLine(); // blocks until a line or timeout occurs
+            } catch (IOException e) {
+                System.out.println("Serial read error: " + e.getMessage());
+            }
         }
         return null;
     }
@@ -53,6 +60,13 @@ public class GyroSerial {
      * Close the serial port when done
      */
     public void close() {
+        try {
+            if (reader != null) {
+                reader.close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         if (serialPort != null && serialPort.isOpen()) {
             serialPort.closePort();
             System.out.println("Serial port closed.");
@@ -73,16 +87,12 @@ public class GyroSerial {
         while (true) {
             String line = gyro.readLine();
             if (line != null) {
-                System.out.println(line);
-            }
-            try {
-                Thread.sleep(50); // adjust to match device sending rate
-            } catch (InterruptedException e) {
-                break;
+                System.out.println(line); // X,Y lines from Arduino
+            } else {
+                // No line received within timeout; can log or ignore
+                System.out.println("No data received (timeout).");
             }
         }
-
-        gyro.close();
     }
 }
 
