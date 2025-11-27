@@ -5,7 +5,7 @@ import java.io.IOException;
 
 public class GyroSerial {
 
-    private SerialPort serialPort;
+    SerialPort serialPort;
     private BufferedReader reader;
 
     /**

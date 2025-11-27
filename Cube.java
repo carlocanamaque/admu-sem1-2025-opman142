@@ -20,10 +20,6 @@ public class Cube {
 		y = ((processor.SCREEN_HEIGHT / 2) - processor.TILE_SIZE);
 	}
 
-	public void update() {
-
-	}
-
 	public void draw(Graphics2D g2) {
 
 		g2.setColor(Color.white);
